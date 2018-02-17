@@ -6,14 +6,15 @@ def horizontal_or_vertical(epsilon, line_section):
     else:
         return "horisontal"
 
+
 def check_into_list(epsilon, selection, element):
-    appending = True
     for id_y in selection:
         if abs(element - id_y) <= epsilon:
             return False
     return True
 
-def computation_line(epsilon, block):
+
+def compute_lines(epsilon, block):
     # к верхней горизонтальной линии будем крепить те вертикальные, которые ниже
     selection = []
     vertical = []
@@ -39,24 +40,42 @@ def computation_line(epsilon, block):
     selection.sort(key=lambda val: val[0])
     print(selection)
 
+    # заполнение вертикальных линий
     for line in vertical:
         element = (line[0] + line[2])/2
+        #для проверки на длинные линии
+        upper_bound = 0
+        lower_bound = 0
         for id_y in range(len(selection)-1):
 
             if selection[id_y][0] - epsilon <= line[1] and selection[id_y+1][0] + epsilon >= line[1]:
+                if upper_bound:
+                    if abs(id_y+1-upper_bound) > 1:
+                        for i in range(id_y+1,upper_bound):
+                            if check_into_list(epsilon, selection[i], element):
+                                selection[i].append(element)
                 if check_into_list(epsilon, selection[id_y+1], element):
                     selection[id_y+1].append(element)
+                    lower_bound = id_y
 
             if selection[id_y][0] - epsilon <= line[3] and selection[id_y+1][0] + epsilon >= line[3]:
+                if lower_bound:
+                    if abs(id_y+1-lower_bound) > 1:
+                        for i in range(id_y+1,lower_bound):
+                            if check_into_list(epsilon, selection[i], element):
+                                selection[i].append(element)
                 if check_into_list(epsilon, selection[id_y+1], element):
                     selection[id_y+1].append(element)
+                    upper_bound = id_y
 
-    #крайние точки
-    selection[-1].append(min(min(horizontal, key=lambda val: val[0]),min(horizontal, key=lambda val: val[3])))
-    selection[-1].append(max(max(horizontal, key=lambda val: val[0]),max(horizontal, key=lambda val: val[3])))
+    # крайние точки
+    min_line = min(min(horizontal, key=lambda val: val[0]),min(horizontal, key=lambda val: val[2]))
+    max_line = max(max(horizontal, key=lambda val: val[0]),max(horizontal, key=lambda val: val[2]))
+    selection[-1].append(min(min_line[0],min_line[2]))
+    selection[-1].append(max(max_line[0],max_line[2]))
 
     print(selection)
-    return selection
+    return [[selection[-1][0],selection[-2][0]],selection[-1][1:]],selection[-2][0]
 
 test_mass = [(531.84, 761.8403999999999, 532.8, 827.8403999999999),
              (489.71999999999997, 761.8403999999999, 490.68, 827.8403999999999),
@@ -85,4 +104,4 @@ test_mass = [(531.84, 761.8403999999999, 532.8, 827.8403999999999),
              (178.56, 656.4804, 179.51999999999998, 674.3604), (49.32, 656.4804, 50.28, 674.3604),
              (33.96, 673.4004, 559.68, 674.3604), (33.96, 656.3604, 558.6, 657.3204),
              (129.96, 656.8403999999999, 130.92, 674.3604), (33.96, 333.5604, 558.9599999999999,334.5204)]
-computation_line(1.,test_mass)
+print(compute_lines(1.,test_mass))
